@@ -3,9 +3,11 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="../../../../layout/custom_preview.xml" value="0.1" />
         <entry key="app/src/main/res/font/.xml" value="0.1265625" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.12420349121093749" />
         <entry key="app/src/main/res/layout/card_item_container.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/card_item_container2.xml" value="0.1" />
         <entry key="app/src/main/res/layout/layout_enemy_card.xml" value="0.1" />
         <entry key="app/src/main/res/layout/layout_rain_money.xml" value="0.1" />
         <entry key="app/src/main/res/layout/layout_show_card.xml" value="0.1" />

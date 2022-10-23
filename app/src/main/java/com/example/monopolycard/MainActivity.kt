@@ -15,10 +15,13 @@ import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
+import androidx.core.view.children
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
+import androidx.viewpager2.widget.ViewPager2
 import com.example.monopolycard.cards.CardAdapter
 import com.example.monopolycard.cards.CardItem
 import com.example.monopolycard.databinding.ActivityMainBinding
@@ -28,10 +31,6 @@ import kotlin.math.abs
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val cardItems = mutableListOf<CardItem>()
-    private var xDelta = 0
-    private var yDelta = 0
-    private var isAbleMove = true
-    private var isAfterMoney = false
 
     private lateinit var sp: SoundPool
     private var cashSound: Int = 0
@@ -50,20 +49,36 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        initViewPager()
+        initViewPager(binding.viewPagerMonopoly)
+        initViewPager(binding.cardPlaceholderViewPager)
+        initViewPager(binding.cardPlaceholderViewPager2)
+        binding.cardPlaceholderViewPager.setPageTransformer(null)
+        binding.cardPlaceholderViewPager.adapter = CardAdapter(this@MainActivity, cardItems, false) { item ->
+            println("item clicked")
+        }
+        binding.cardPlaceholderViewPager2.setPageTransformer(null)
+        binding.cardPlaceholderViewPager2.adapter = CardAdapter(this@MainActivity, cardItems, false) { item ->
+            println("item clicked")
+        }
         initSound()
         initBindingListener()
-//        initMedia()
 
         showPlayerDeck()
     }
 
-    private fun initViewPager() {
+    private fun initViewPager(viewPager2: ViewPager2) {
         cardItems.add(CardItem(R.drawable.spr_py_brown_house_card))
         cardItems.add(CardItem(R.drawable.spr_py_orange_house_card))
         cardItems.add(CardItem(R.drawable.spr_py_2m_card))
         cardItems.add(CardItem(R.drawable.spr_py_2m_card))
         cardItems.add(CardItem(R.drawable.spr_py_orange_house_card))
+
+        viewPager2.clipToPadding = false
+        viewPager2.clipChildren = false
+        viewPager2.clipToOutline = false
+        viewPager2.offscreenPageLimit = 3
+        viewPager2.getChildAt(0).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
+        viewPager2.currentItem = 2
 
         val compositePageTransformer = CompositePageTransformer()
         compositePageTransformer.addTransformer(MarginPageTransformer(40))
@@ -72,17 +87,10 @@ class MainActivity : AppCompatActivity() {
             page.scaleY = 0.85f + r * 0.15f
         }
 
-        binding.viewPagerMonopoly.setPageTransformer(compositePageTransformer)
-        binding.viewPagerMonopoly.adapter = CardAdapter(this@MainActivity, cardItems) { item ->
-            if (item.image == R.drawable.spr_py_2m_card) {
-                postPlayerMoney()
-            }
-            else {
-                showPagerAndSkipButton(false)
+        viewPager2.setPageTransformer(compositePageTransformer)
+        viewPager2.adapter = CardAdapter(this@MainActivity, cardItems) { item ->
 
-            }
         }
-        showCardY = binding.showCardInc.root.y
         binding.rainMoneyInc.root.visibility = View.GONE
     }
 
@@ -105,37 +113,10 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("ClickableViewAccessibility")
     private fun initBindingListener() {
-        binding.chosenAssetImageView.setOnTouchListener { view, event ->
-            val x = event.rawX.toInt()
-            val y = event.rawY.toInt()
+        binding.cardPlaceholderViewPager.setOnTouchListener { v, event ->
             when (event?.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    if (isAfterMoney) {
-                        val lParams = view.layoutParams as ConstraintLayout.LayoutParams
-                        xDelta = x - lParams.leftMargin
-                        yDelta = y - lParams.topMargin
-                        showPagerAndSkipButton(false)
-                        isAbleMove
-                    } else false
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    val layoutParams = view
-                        .layoutParams as ConstraintLayout.LayoutParams
-                    layoutParams.leftMargin = x - xDelta
-                    layoutParams.topMargin = y - yDelta
-                    layoutParams.rightMargin = 0
-                    layoutParams.bottomMargin = 0
-                    view.layoutParams = layoutParams
-                    binding.cardPlaceholderImageView.setColorFilter(
-                        resources.getColor(R.color.white, this.theme)
-                    )
-                    isAbleMove
-                }
-                MotionEvent.ACTION_UP -> {
-                    if (isAbleMove) {
-                        isAbleMove = false
-                        playAssetCardAnimation()
-                    }
+                    println("pager click")
                     true
                 }
                 else -> false
@@ -144,9 +125,6 @@ class MainActivity : AppCompatActivity() {
 
         binding.skipButtonImageView.setOnClickListener {
             hideCard(true)
-        }
-        binding.showCardInc.root.setOnClickListener {
-            onArrowClick()
         }
     }
 
@@ -180,28 +158,6 @@ class MainActivity : AppCompatActivity() {
                 mMediaPlayer?.start()
             }
         }
-    }
-
-    private fun showPlayerDeck() {
-        showUpArrow(false)
-        showPagerAndSkipButton(true)
-        val arrowMoveToY = showCardY - 280
-
-        val translation = View.TRANSLATION_Y
-
-        val translateArrowY = ObjectAnimator.ofFloat(
-            binding.showCardInc.root, translation, showCardY, arrowMoveToY
-        ).setDuration(1000)
-        val moveUp =
-            ObjectAnimator.ofFloat(binding.viewPagerLayout, View.TRANSLATION_Y, 600f, -600f)
-                .setDuration(1000)
-
-        AnimatorSet().apply {
-            playTogether(moveUp, translateArrowY)
-            doOnEnd {
-                showCardY = arrowMoveToY
-            }
-        }.start()
     }
 
     private fun postPlayerMoney() {
@@ -262,11 +218,10 @@ class MainActivity : AppCompatActivity() {
                     binding.viewPagerMonopoly.adapter = CardAdapter(this@MainActivity, cardItems) { item ->
                         if (item.image == R.drawable.spr_py_2m_card) {
                             postPlayerMoney()
-                        } else if (item.image == R.drawable.spr_py_orange_house_card) {
-                            if (isAfterMoney) enableMoveCard()
+                        } else {
+                            postPlayerAsset()
                         }
                     }
-                    isAfterMoney = true
                     binding.viewPagerMonopoly.currentItem = 1
                     showPlayerDeck()
                 }
@@ -282,18 +237,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun playAssetCardAnimation() {
         val initX = binding.chosenAssetImageView.x
-        val placeholderX = (binding.cardPlaceholderImageView.x - binding.chosenAssetImageView.x) + 73.2
+//        val placeholderX = (binding.cardPlaceholderImageView.x - binding.chosenAssetImageView.x) + 73.2
         val initY = binding.chosenAssetImageView.y
-        val placeHolderY = (binding.cardPlaceholderImageView.y - binding.chosenAssetImageView.y) - 24
+//        val placeHolderY = (binding.cardPlaceholderImageView.y - binding.chosenAssetImageView.y) - 24
 
         val scaleY = ObjectAnimator.ofFloat(
             binding.chosenAssetImageView, View.SCALE_Y, 1.0f, 0.88f
         ).setDuration(1000)
         val moveX = ObjectAnimator.ofFloat(
-            binding.chosenAssetImageView, View.TRANSLATION_X, initX, placeholderX.toFloat()
+            binding.chosenAssetImageView, View.TRANSLATION_X, initX, 0.0f
         ).setDuration(1000)
         val moveY = ObjectAnimator.ofFloat(
-            binding.chosenAssetImageView, View.TRANSLATION_Y, initY, placeHolderY
+            binding.chosenAssetImageView, View.TRANSLATION_Y, initY, 0.0f
         ).setDuration(1000)
         val dummyY = ObjectAnimator.ofFloat(
             binding.rainMoneyInc.root, View.TRANSLATION_Y,1.0f, 0.9f
@@ -317,7 +272,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 binding.viewPagerMonopoly.currentItem = 1
-                binding.viewPagerBackground.bringToFront()
                 binding.viewPagerLayout.bringToFront()
                 binding.skipButtonImageView.bringToFront()
                 binding.downBarLayout.bringToFront()
@@ -341,20 +295,41 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun hideCard(isSkip: Boolean) {
-        showUpArrow(true)
+    private fun onArrowClick() {
+        if (isShowingCard) {
+            isShowingCard = false
+            hideCard(false)
+        } else {
+            isShowingCard = true
+            showPlayerDeck()
+        }
+    }
 
+    private fun showPlayerDeck() {
+        showPagerAndSkipButton(true)
+//        val arrowMoveToY = showCardY - 280
+//
+//        val moveUp =
+//            ObjectAnimator.ofFloat(binding.viewPagerLayout, View.TRANSLATION_Y, 600f, -600f)
+//                .setDuration(1000)
+//
+//        AnimatorSet().apply {
+//            playTogether(moveUp)
+//            doOnEnd {
+//                showCardY = arrowMoveToY
+//            }
+//        }.start()
+    }
+
+    private fun hideCard(isSkip: Boolean) {
         val arrowMoveToY = showCardY + 280
 
-        val translateArrowY = ObjectAnimator.ofFloat(
-            binding.showCardInc.root, View.TRANSLATION_Y, showCardY, arrowMoveToY
-        ).setDuration(1000)
         val moveUp =
             ObjectAnimator.ofFloat(binding.viewPagerLayout, View.TRANSLATION_Y, -600f, 600f)
                 .setDuration(1000)
 
         AnimatorSet().apply {
-            playTogether(translateArrowY, moveUp)
+            playTogether(moveUp)
             doOnEnd {
                 if (isSkip) onSkip()
                 else showPagerAndSkipButton(false)
@@ -382,30 +357,12 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun onArrowClick() {
-        if (isShowingCard) {
-            isShowingCard = false
-            hideCard(false)
-        } else {
-            isShowingCard = true
-            showPlayerDeck()
-        }
-    }
-
     private fun enableMoveCard() {
         binding.chosenAssetImageView.isVisible = true
     }
 
-    private fun showUpArrow(isShowUp: Boolean) {
-        binding.showCardInc.showCardLayout.isVisible = isShowUp
-        binding.showCardInc.showCardTextView.isVisible = isShowUp
-        binding.showCardInc.hideCardLayout.isGone = isShowUp
-        binding.showCardInc.hideCardTextView.isGone = isShowUp
-    }
-
     private fun showPagerAndSkipButton(isShowUp: Boolean) {
         binding.viewPagerMonopoly.isVisible = isShowUp
-        binding.viewPagerBackground.isVisible = isShowUp
         binding.skipButtonImageView.isVisible = isShowUp
     }
 }
