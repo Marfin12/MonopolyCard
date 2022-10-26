@@ -1,19 +1,23 @@
 package com.example.monopolycard
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.SoundPool
 import android.os.Bundle
-import android.view.MotionEvent
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnStart
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.ViewPager2
 import com.example.monopolycard.cards.CardItem
 import com.example.monopolycard.databinding.ActivityMainBinding
 import com.example.monopolycard.decks.DeckAdapter
 import com.example.monopolycard.decks.DeckItem
+import com.example.monopolycard.decks.DeckViewHolder
 import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
@@ -69,21 +73,26 @@ class MainActivity : AppCompatActivity() {
             onPagerSwipe = { isNext ->
                 if (isNext) nextPlayer()
                 else prevPlayer()
-            }
+            },
+            DownBarAction({
+                onStartPostCard()
+            }, { actionValue, actionType ->
+                onEndPostCard(actionValue, actionType)
+            })
         )
-        binding.monopolyViewPager.setOnTouchListener { v, event ->
-            when (event?.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    println("x: ${event.rawX}")
-                    println("x: ${event.rawY}")
-                    true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    true
-                }
-                else -> false
-            }
-        }
+//        binding.monopolyViewPager.setOnTouchListener { v, event ->
+//            when (event?.action) {
+//                MotionEvent.ACTION_DOWN -> {
+//                    println("x: ${event.rawX}")
+//                    println("x: ${event.rawY}")
+//                    true
+//                }
+//                MotionEvent.ACTION_MOVE -> {
+//                    true
+//                }
+//                else -> false
+//            }
+//        }
     }
 
     private fun nextPlayer() {
@@ -118,7 +127,11 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("ClickableViewAccessibility")
     private fun initBindingListener() {
         binding.skipButtonImageView.setOnClickListener {
-//            hideCard(true)
+            nextPlayer()
+            DeckViewHolder.onSkipButtonClick()
+            binding.usedAssetView.visibility = View.VISIBLE
+            binding.usedMoneyView.visibility = View.VISIBLE
+            binding.usedActionView.visibility = View.VISIBLE
         }
     }
 
@@ -151,6 +164,65 @@ class MainActivity : AppCompatActivity() {
             } else {
                 mMediaPlayer?.start()
             }
+        }
+    }
+
+    private fun onStartPostCard() {
+        binding.skipButtonImageView.visibility = View.GONE
+    }
+
+    private fun onEndPostCard(actionValue: String, actionType: String) {
+        when (actionType) {
+            DeckActionType.MONEY -> onEndPostMoneyCard(actionValue)
+            DeckActionType.ASSET -> onEndPostAssetCard(actionValue)
+            DeckActionType.ACTION -> {
+                // TODO
+            }
+        }
+    }
+
+    private fun onEndPostAssetCard(totalAsset: String) {
+        binding.usedAssetView.visibility = View.VISIBLE
+        binding.txtHouse.text = totalAsset
+    }
+
+    private fun onEndPostMoneyCard(playerCash: String) {
+        with(binding.rainMoneyInc) {
+            val moneyY = rainMoneyLayout.y
+            val moneyMoveToY = moneyY + 900
+
+            val moneyRain = ObjectAnimator.ofFloat(
+                rainMoneyLayout, View.TRANSLATION_Y, moneyY + 20, moneyMoveToY
+            ).setDuration(1600)
+
+            AnimatorSet().apply {
+                playTogether(moneyRain)
+                doOnStart {
+                    if (spLoaded) {
+                        sp.play(cashSound, 1f, 1f, 0, 0, 1f)
+                    }
+                }
+                doOnEnd {
+                    rainMoneyLayout.y = moneyY
+                    binding.txtCash.text = playerCash
+                    binding.usedMoneyView.visibility = View.VISIBLE
+                    binding.skipButtonImageView.visibility = View.VISIBLE
+                }
+            }.start()
+            root.visibility = View.VISIBLE
+        }
+    }
+
+    private class DownBarAction(
+        private val onStartPostCardAction: (() -> Unit),
+        private val onEndPostCardAction: ((actionValue: String, actionType: String) -> Unit),
+    ) : DownBarActionEvent {
+        override fun onStartPostCard() {
+            onStartPostCardAction()
+        }
+
+        override fun onEndPostCard(actionValue: String, actionType: String) {
+            onEndPostCardAction(actionValue, actionType)
         }
     }
 }

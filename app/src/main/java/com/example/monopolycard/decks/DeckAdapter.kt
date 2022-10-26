@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.monopolycard.DownBarActionEvent
 import com.example.monopolycard.R
 
 class DeckAdapter(
@@ -11,7 +12,8 @@ class DeckAdapter(
     private val deckItem: MutableList<DeckItem>,
     private val onPagerDown: (() -> Unit),
     private val onPagerUp: (() -> Unit),
-    private val onPagerSwipe: ((isNext: Boolean) -> Unit)
+    private val onPagerSwipe: ((isNext: Boolean) -> Unit),
+    private val downBarActionEvent: DownBarActionEvent
 ) :
     RecyclerView.Adapter<DeckViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DeckViewHolder {
@@ -25,7 +27,12 @@ class DeckAdapter(
     }
 
     override fun onBindViewHolder(holder: DeckViewHolder, position: Int) {
-        holder.setPlayerDeck(deckItem[position], context, onPagerDown, onPagerUp, onPagerSwipe)
+        holder.setPlayerDeck(deckItem[position], context,
+            onPagerDown,
+            onPagerUp,
+            onPagerSwipe,
+            downBarActionEvent
+        )
     }
 
     override fun getItemCount(): Int {

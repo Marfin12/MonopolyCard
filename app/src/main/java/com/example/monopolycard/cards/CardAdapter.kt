@@ -12,8 +12,8 @@ class CardAdapter(
     private val context: Context,
     private val cardItem: MutableList<CardItem>,
     private val isPlayerDeck: Boolean = true,
-    private val onItemDown: ((CardItem) -> Unit),
-    private val onItemUp: (() -> Unit)
+    private val onItemDown: (() -> Unit),
+    private val onItemUp: ((CardItem) -> Unit)
 ) :
 
     RecyclerView.Adapter<CardViewHolder>() {
@@ -51,8 +51,8 @@ class CardAdapter(
         notifyDataSetChanged()
     }
 
-    fun setCardItem(image: Int) {
-        cardItem[itemCount - 1] = CardItem(0)
+    fun setCardToGone(idx: Int) {
+        cardItem[idx] = CardItem(0)
         notifyDataSetChanged()
     }
 }
