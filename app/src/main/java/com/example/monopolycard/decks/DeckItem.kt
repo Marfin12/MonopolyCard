@@ -6,5 +6,6 @@ import java.io.Serializable
 class DeckItem(
     val isYourDeck: Boolean,
     val assetCardItem: MutableList<CardItem>,
-    val playerCardItem: MutableList<CardItem>
+    val playerCardItem: MutableList<CardItem>,
+    var actionType: String
 ) : Serializable

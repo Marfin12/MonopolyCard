@@ -34,6 +34,10 @@ class MainActivity : AppCompatActivity() {
     private val listPlayer = mutableListOf<DeckItem>()
     private val cardItems = mutableListOf<CardItem>()
     private val cardItems2 = mutableListOf<CardItem>()
+    private val cardItems3 = mutableListOf<CardItem>()
+    private val cardItems4 = mutableListOf<CardItem>()
+
+    private var deckAdapter: DeckAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,17 +57,16 @@ class MainActivity : AppCompatActivity() {
         cardItems.add(CardItem(R.drawable.spr_py_2m_card))
         cardItems.add(CardItem(R.drawable.spr_py_orange_house_card))
         cardItems2.addAll(cardItems)
+        cardItems3.addAll(cardItems)
+        cardItems4.addAll(cardItems)
 
-        listPlayer.add(DeckItem(true, cardItems, cardItems2))
-        listPlayer.add(DeckItem(false, cardItems, cardItems2))
+        listPlayer.add(DeckItem(true, cardItems, cardItems2, DeckActionType.IDLE))
+        listPlayer.add(DeckItem(false, cardItems3, cardItems4, DeckActionType.IDLE))
     }
 
     @SuppressLint("ClickableViewAccessibility")
     private fun initViewPager() {
-        binding.monopolyViewPager.offscreenPageLimit = 3
-        binding.monopolyViewPager.getChildAt(0).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
-
-        binding.monopolyViewPager.adapter = DeckAdapter(this@MainActivity, listPlayer,
+        deckAdapter = DeckAdapter(this@MainActivity, listPlayer,
             onPagerDown = {
                 binding.monopolyViewPager.isUserInputEnabled = false
             },
@@ -78,8 +81,11 @@ class MainActivity : AppCompatActivity() {
                 onStartPostCard()
             }, { actionValue, actionType ->
                 onEndPostCard(actionValue, actionType)
-            })
-        )
+            }))
+        binding.monopolyViewPager.offscreenPageLimit = 3
+        binding.monopolyViewPager.getChildAt(0).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
+
+        binding.monopolyViewPager.adapter = deckAdapter
 //        binding.monopolyViewPager.setOnTouchListener { v, event ->
 //            when (event?.action) {
 //                MotionEvent.ACTION_DOWN -> {
@@ -99,6 +105,9 @@ class MainActivity : AppCompatActivity() {
         val currentItem = binding.monopolyViewPager.currentItem
         if (currentItem < cardItems.size - 1)
             binding.monopolyViewPager.setCurrentItem(currentItem + 1, true)
+        binding.monopolyViewPager.postDelayed(enemyPostAssetTurn, 3500)
+        binding.monopolyViewPager.postDelayed(enemyPostMoneyTurn, 9000)
+        binding.monopolyViewPager.postDelayed(playerPostTurn, 12000)
     }
 
     private fun prevPlayer() {
@@ -224,5 +233,18 @@ class MainActivity : AppCompatActivity() {
         override fun onEndPostCard(actionValue: String, actionType: String) {
             onEndPostCardAction(actionValue, actionType)
         }
+    }
+
+    private val enemyPostAssetTurn = Runnable {
+        deckAdapter?.postEnemyAction(DeckActionType.ASSET)
+    }
+
+    private val enemyPostMoneyTurn = Runnable {
+        deckAdapter?.postEnemyAction(DeckActionType.MONEY)
+    }
+
+    private val playerPostTurn = Runnable {
+        prevPlayer()
+        DeckViewHolder.onPlayerTurn()
     }
 }

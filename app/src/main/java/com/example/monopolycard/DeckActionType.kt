@@ -4,7 +4,8 @@ import androidx.annotation.Keep
 
 @Keep
 object DeckActionType {
-    var MONEY: String = "0"
-    var ASSET: String = "1"
-    var ACTION: String = "2"
+    val IDLE: String = "IDLE"
+    val MONEY: String = "MONEY"
+    val ASSET: String = "ASSET"
+    val ACTION: String = "ACTION"
 }

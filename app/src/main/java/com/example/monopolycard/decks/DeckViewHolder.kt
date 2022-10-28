@@ -27,12 +27,15 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
     private val nextArrowImageView = itemView.findViewById<ImageView>(R.id.next_image_view)
     private val prevArrowImageView = itemView.findViewById<ImageView>(R.id.prev_image_view)
     private val chosenCardImageView = itemView.findViewById<ImageView>(R.id.chosen_card_image_view)
+    private val placeHolderImageView = itemView.findViewById<ImageView>(R.id.placeholder_image_view)
     private val dummyDelayLayout = itemView.findViewById<ConstraintLayout>(R.id.dummy_delay_layout)
 
     private var assetCardAdapter: CardAdapter? = null
     private var assetPlayerAdapter: CardAdapter? = null
 
-    private var deckItem = DeckItem(false, mutableListOf(), mutableListOf())
+    private var deckItem = DeckItem(
+        false, mutableListOf(), mutableListOf(), DeckActionType.IDLE
+    )
 
     private var onPagerDown: (() -> Unit) = {}
     private var onPagerUp: (() -> Unit) = {}
@@ -47,6 +50,12 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
             isMoneyStepExist = false
             isAssetStepExist = false
             isActionStepExist = false
+        }
+
+        fun onPlayerTurn() {
+            isMoneyStepExist = true
+            isAssetStepExist = true
+            isActionStepExist = true
         }
     }
 
@@ -84,6 +93,11 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
 
         if (deckItem.isYourDeck) initViewPager(playerViewPager)
         else playerViewPager.isVisible = false
+
+        when(deckItem.actionType) {
+            DeckActionType.ASSET -> onPostAsset(deckItem.assetCardItem[1], null)
+            DeckActionType.MONEY -> onPostMoney(deckItem.assetCardItem[2], null)
+        }
     }
 
     private fun initArrow() {
@@ -107,7 +121,6 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
         viewPager2.clipToOutline = false
         viewPager2.offscreenPageLimit = 3
         viewPager2.getChildAt(0).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
-        viewPager2.currentItem = 2
 
         val compositePageTransformer = CompositePageTransformer()
         compositePageTransformer.addTransformer(MarginPageTransformer(40))
@@ -136,7 +149,7 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
 
     private fun onPostAsset(
         cardItem: CardItem,
-        downBarActionEvent: DownBarActionEvent
+        downBarActionEvent: DownBarActionEvent?
     ) {
         onStartPlacingCard(cardItem)
 
@@ -161,7 +174,7 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
                 isAssetStepExist = false
                 assetCardAdapter?.addCardItem(R.drawable.spr_card_placeholder)
 
-                downBarActionEvent.onEndPostCard("7", DeckActionType.ASSET)
+                downBarActionEvent?.onEndPostCard("7", DeckActionType.ASSET)
                 onFinishingCardPlaced(chosenCardY)
             }
         }.start()
@@ -169,12 +182,13 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
 
     private fun onPostMoney(
         cardItem: CardItem,
-        downBarActionEvent: DownBarActionEvent
+        downBarActionEvent: DownBarActionEvent?
     ) {
-        downBarActionEvent.onStartPostCard()
+        downBarActionEvent?.onStartPostCard()
         onStartPlacingCard(cardItem)
         val chosenCardY = chosenCardImageView.y
         val chosenCardToY = chosenCardImageView.y - 1300
+        val chosenCardRotation = chosenCardImageView.rotation
 
         val rotate = ObjectAnimator.ofFloat(
             chosenCardImageView, View.ROTATION, 0f, 271f
@@ -193,8 +207,10 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
             playTogether(scaleX, scaleY, translateY, rotate)
             doOnEnd {
                 isMoneyStepExist = false
+                chosenCardImageView.rotation = chosenCardRotation
 
-                downBarActionEvent.onEndPostCard("10", DeckActionType.MONEY)
+                downBarActionEvent?.onEndPostCard("10", DeckActionType.MONEY)
+                placeHolderImageView.setImageResource(R.drawable.spr_py_2m_card)
                 onFinishingCardPlaced(chosenCardY)
             }
         }.start()
@@ -204,6 +220,7 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
         chosenCardImageView.visibility = View.GONE
         chosenCardImageView.y = backToOriginalY
         val currentItem = playerViewPager.currentItem
+
         playerViewPager.setCurrentItem(currentItem - 1, true)
         startDelayedFunction(1000L) {
             assetPlayerAdapter?.removeCardItem(currentItem)

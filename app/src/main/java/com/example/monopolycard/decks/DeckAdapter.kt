@@ -38,4 +38,9 @@ class DeckAdapter(
     override fun getItemCount(): Int {
         return deckItem.size
     }
+
+    fun postEnemyAction(actionType: String) {
+        deckItem[1].actionType = actionType
+        notifyDataSetChanged()
+    }
 }
