@@ -51,14 +51,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initDeck() {
-        cardItems.add(CardItem(R.drawable.spr_py_brown_house_card))
-        cardItems.add(CardItem(R.drawable.spr_py_orange_house_card))
-        cardItems.add(CardItem(R.drawable.spr_py_2m_card))
-        cardItems.add(CardItem(R.drawable.spr_py_2m_card))
-        cardItems.add(CardItem(R.drawable.spr_py_orange_house_card))
-        cardItems2.addAll(cardItems)
-        cardItems3.addAll(cardItems)
-        cardItems4.addAll(cardItems)
+        cardItems2.add(CardItem(R.drawable.spr_py_brown_house_card))
+        cardItems2.add(CardItem(R.drawable.spr_py_orange_house_card))
+        cardItems2.add(CardItem(R.drawable.spr_py_2m_card))
+        cardItems2.add(CardItem(R.drawable.spr_py_2m_card))
+        cardItems2.add(CardItem(R.drawable.spr_py_act_go_pass))
+        cardItems4.addAll(cardItems2)
+        cardItems.add(CardItem(R.drawable.spr_card_placeholder))
+        cardItems3.add(CardItem(R.drawable.spr_card_placeholder))
 
         listPlayer.add(DeckItem(true, cardItems, cardItems2, DeckActionType.IDLE))
         listPlayer.add(DeckItem(false, cardItems3, cardItems4, DeckActionType.IDLE))

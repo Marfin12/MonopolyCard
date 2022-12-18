@@ -15,7 +15,6 @@ class CardAdapter(
     private val onItemDown: (() -> Unit),
     private val onItemUp: ((CardItem) -> Unit)
 ) :
-
     RecyclerView.Adapter<CardViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
         return if (isPlayerDeck) CardViewHolder(
@@ -39,6 +38,10 @@ class CardAdapter(
 
     override fun getItemCount(): Int {
         return cardItem.size
+    }
+
+    fun setCardItem(pos: Int, image: Int) {
+        cardItem[pos].image =  image
     }
 
     fun addCardItem(image: Int) {

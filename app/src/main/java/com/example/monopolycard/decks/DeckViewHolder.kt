@@ -172,6 +172,8 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
             playTogether(scaleX, scaleY, translateY)
             doOnEnd {
                 isAssetStepExist = false
+                val totalCards = ((assetCardAdapter?.itemCount) ?: 0) - 1
+                assetCardAdapter?.setCardItem(totalCards, R.drawable.spr_py_orange_house_card)
                 assetCardAdapter?.addCardItem(R.drawable.spr_card_placeholder)
 
                 downBarActionEvent?.onEndPostCard("7", DeckActionType.ASSET)

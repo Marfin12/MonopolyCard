@@ -26,7 +26,6 @@
             android:rotation="271"
             android:scaleType="fitStart"
             android:visibility="visible"
-            android:src="@drawable/spr_py_2m_card"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
