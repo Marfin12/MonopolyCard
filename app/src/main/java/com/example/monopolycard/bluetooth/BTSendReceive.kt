@@ -1,8 +1,8 @@
-package com.example.monopolycard
+package com.example.monopolycard.bluetooth
 
 import android.bluetooth.BluetoothSocket
 import android.os.Handler
-import com.example.monopolycard.BTState.STATE_MESSAGE_RECEIVED
+import com.example.monopolycard.bluetooth.BTState.STATE_MESSAGE_RECEIVED
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream

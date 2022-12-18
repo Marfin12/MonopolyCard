@@ -1,4 +1,4 @@
-package com.example.monopolycard
+package com.example.monopolycard.bluetooth
 
 import android.Manifest
 import android.bluetooth.BluetoothDevice
@@ -8,9 +8,9 @@ import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Message
 import androidx.core.app.ActivityCompat
-import com.example.monopolycard.BTConstant.MY_UUID
-import com.example.monopolycard.BTState.STATE_CONNECTED
-import com.example.monopolycard.BTState.STATE_CONNECTION_FAILED
+import com.example.monopolycard.bluetooth.BTConstant.MY_UUID
+import com.example.monopolycard.bluetooth.BTState.STATE_CONNECTED
+import com.example.monopolycard.bluetooth.BTState.STATE_CONNECTION_FAILED
 import java.io.IOException
 
 class BTClient(

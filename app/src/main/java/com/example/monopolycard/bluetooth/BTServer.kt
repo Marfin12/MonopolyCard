@@ -1,4 +1,4 @@
-package com.example.monopolycard
+package com.example.monopolycard.bluetooth
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -6,13 +6,12 @@ import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
 import android.os.Handler
 import java.io.IOException
-import java.util.*
 import android.os.Message
-import com.example.monopolycard.BTConstant.APP_NAME
-import com.example.monopolycard.BTConstant.MY_UUID
-import com.example.monopolycard.BTState.STATE_CONNECTED
-import com.example.monopolycard.BTState.STATE_CONNECTING
-import com.example.monopolycard.BTState.STATE_CONNECTION_FAILED
+import com.example.monopolycard.bluetooth.BTConstant.APP_NAME
+import com.example.monopolycard.bluetooth.BTConstant.MY_UUID
+import com.example.monopolycard.bluetooth.BTState.STATE_CONNECTED
+import com.example.monopolycard.bluetooth.BTState.STATE_CONNECTING
+import com.example.monopolycard.bluetooth.BTState.STATE_CONNECTION_FAILED
 
 
 @SuppressLint("MissingPermission")

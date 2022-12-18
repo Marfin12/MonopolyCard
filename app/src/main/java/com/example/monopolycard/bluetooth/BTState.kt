@@ -1,4 +1,4 @@
-package com.example.monopolycard
+package com.example.monopolycard.bluetooth
 
 import androidx.annotation.Keep
 

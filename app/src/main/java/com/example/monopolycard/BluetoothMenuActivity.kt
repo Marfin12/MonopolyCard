@@ -20,11 +20,13 @@ import android.widget.ArrayAdapter
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.example.monopolycard.BTState.STATE_CONNECTED
-import com.example.monopolycard.BTState.STATE_CONNECTING
-import com.example.monopolycard.BTState.STATE_CONNECTION_FAILED
-import com.example.monopolycard.BTState.STATE_LISTENING
-import com.example.monopolycard.BTState.STATE_MESSAGE_RECEIVED
+import com.example.monopolycard.bluetooth.BTState.STATE_CONNECTED
+import com.example.monopolycard.bluetooth.BTState.STATE_CONNECTING
+import com.example.monopolycard.bluetooth.BTState.STATE_CONNECTION_FAILED
+import com.example.monopolycard.bluetooth.BTState.STATE_LISTENING
+import com.example.monopolycard.bluetooth.BTState.STATE_MESSAGE_RECEIVED
+import com.example.monopolycard.bluetooth.BTClient
+import com.example.monopolycard.bluetooth.BTServer
 import com.example.monopolycard.databinding.ActivityBluetoothMenuBinding
 
 
