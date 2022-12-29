@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     private var moneyRotateSound: Int = 0
     private var assetPlacedSound: Int = 0
     private var spLoaded = false
+    private var currentPlayer = 0
 
     private var mMediaPlayer: MediaPlayer? = null
     private var isReady: Boolean = false
@@ -54,14 +55,26 @@ class MainActivity : AppCompatActivity() {
         cardItems2.add(CardItem(R.drawable.spr_py_brown_house_card))
         cardItems2.add(CardItem(R.drawable.spr_py_orange_house_card))
         cardItems2.add(CardItem(R.drawable.spr_py_2m_card))
-        cardItems2.add(CardItem(R.drawable.spr_py_2m_card))
+        cardItems2.add(CardItem(R.drawable.spr_py_act_go_pass))
         cardItems2.add(CardItem(R.drawable.spr_py_act_go_pass))
         cardItems4.addAll(cardItems2)
         cardItems.add(CardItem(R.drawable.spr_card_placeholder))
         cardItems3.add(CardItem(R.drawable.spr_card_placeholder))
 
-        listPlayer.add(DeckItem(true, cardItems, cardItems2, DeckActionType.IDLE))
-        listPlayer.add(DeckItem(false, cardItems3, cardItems4, DeckActionType.IDLE))
+        listPlayer.add(DeckItem(
+            true,
+            cardItems,
+            cardItems2,
+            DeckActionType.IDLE,
+            isMoneyStepExist = true, isAssetStepExist = true, isActionStepExist = true
+        ))
+        listPlayer.add(DeckItem(
+            false,
+            cardItems3,
+            cardItems4,
+            DeckActionType.IDLE,
+            isMoneyStepExist = false, isAssetStepExist = false, isActionStepExist = false
+        ))
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -79,8 +92,8 @@ class MainActivity : AppCompatActivity() {
             },
             DownBarAction({
                 onStartPostCard()
-            }, { actionValue, actionType ->
-                onEndPostCard(actionValue, actionType)
+            }, { actionValue, actionType, isAllTypePosted ->
+                onEndPostCard(actionValue, actionType, isAllTypePosted)
             }))
         binding.monopolyViewPager.offscreenPageLimit = 3
         binding.monopolyViewPager.getChildAt(0).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
@@ -102,16 +115,27 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun nextPlayer() {
+        binding.usedAssetView.visibility = View.GONE
+        binding.usedActionView.visibility = View.GONE
+        binding.usedMoneyView.visibility = View.GONE
+        binding.skipButtonImageView.visibility = View.GONE
+
+        deckAdapter?.nextTurn(currentPlayer, ++currentPlayer)
+
         val currentItem = binding.monopolyViewPager.currentItem
-        if (currentItem < cardItems.size - 1)
-            binding.monopolyViewPager.setCurrentItem(currentItem + 1, true)
-        binding.monopolyViewPager.postDelayed(enemyPostAssetTurn, 3500)
-        binding.monopolyViewPager.postDelayed(enemyPostMoneyTurn, 9000)
-        binding.monopolyViewPager.postDelayed(playerPostTurn, 12000)
+        if (currentItem < listPlayer.size - 1)
+        binding.monopolyViewPager.setCurrentItem(currentItem + 1, true)
+        binding.monopolyViewPager.postDelayed(enemyPostAssetTurn, 6000)
+        binding.monopolyViewPager.postDelayed(enemyPostMoneyTurn, 3500)
+        binding.monopolyViewPager.postDelayed(enemyPostActionTurn, 9000)
+        binding.monopolyViewPager.postDelayed(enemyPostPlayerTurn, 12000)
     }
 
     private fun prevPlayer() {
+        binding.skipButtonImageView.visibility = View.VISIBLE
         val currentItem = binding.monopolyViewPager.currentItem
+        deckAdapter?.nextTurn(currentPlayer, --currentPlayer)
+        listPlayer.first { playerDeck -> !playerDeck.isYourDeck }.actionType = DeckActionType.IDLE
         if (currentItem > 0)
             binding.monopolyViewPager.setCurrentItem(currentItem - 1, true)
     }
@@ -137,7 +161,7 @@ class MainActivity : AppCompatActivity() {
     private fun initBindingListener() {
         binding.skipButtonImageView.setOnClickListener {
             nextPlayer()
-            DeckViewHolder.onSkipButtonClick()
+
             binding.usedAssetView.visibility = View.VISIBLE
             binding.usedMoneyView.visibility = View.VISIBLE
             binding.usedActionView.visibility = View.VISIBLE
@@ -180,18 +204,40 @@ class MainActivity : AppCompatActivity() {
         binding.skipButtonImageView.visibility = View.GONE
     }
 
-    private fun onEndPostCard(actionValue: String, actionType: String) {
+    private fun onEndPostCard(actionValue: String, actionType: String, isAllTypePosted: Boolean) {
+        deckAdapter?.postCurrentPlayerAction(actionType, currentPlayer)
+
         when (actionType) {
             DeckActionType.MONEY -> onEndPostMoneyCard(actionValue)
             DeckActionType.ASSET -> onEndPostAssetCard(actionValue)
-            DeckActionType.ACTION -> {
-                // TODO
+            DeckActionType.ACTION -> onEndPostActionCard(actionValue)
+        }
+        if (isAllTypePosted) {
+            if (currentPlayer < (listPlayer.size - 1)) nextPlayer()
+            else {
+                binding.monopolyViewPager.removeCallbacks(enemyPostPlayerTurn)
+                prevPlayer()
+            }
+        }
+    }
+
+    private fun onEndPostActionCard(actionType: String) {
+        binding.usedActionView.visibility = View.VISIBLE
+        binding.skipButtonImageView.visibility = View.VISIBLE
+
+        when(actionType) {
+            "0" -> {
+                actionGoPassCard()
+            }
+            else -> {
+                println("error")
             }
         }
     }
 
     private fun onEndPostAssetCard(totalAsset: String) {
         binding.usedAssetView.visibility = View.VISIBLE
+        binding.skipButtonImageView.visibility = View.VISIBLE
         binding.txtHouse.text = totalAsset
     }
 
@@ -224,27 +270,43 @@ class MainActivity : AppCompatActivity() {
 
     private class DownBarAction(
         private val onStartPostCardAction: (() -> Unit),
-        private val onEndPostCardAction: ((actionValue: String, actionType: String) -> Unit),
+        private val onEndPostCardAction: ((
+            actionValue: String,
+            actionType: String,
+            isAllTypePosted: Boolean
+        ) -> Unit),
     ) : DownBarActionEvent {
         override fun onStartPostCard() {
             onStartPostCardAction()
         }
 
-        override fun onEndPostCard(actionValue: String, actionType: String) {
-            onEndPostCardAction(actionValue, actionType)
+        override fun onEndPostCard(actionValue: String, actionType: String, isAllTypePosted: Boolean) {
+            onEndPostCardAction(actionValue, actionType, isAllTypePosted)
         }
     }
 
     private val enemyPostAssetTurn = Runnable {
-        deckAdapter?.postEnemyAction(DeckActionType.ASSET)
+        deckAdapter?.postCurrentPlayerAction(DeckActionType.ASSET, currentPlayer)
     }
 
     private val enemyPostMoneyTurn = Runnable {
-        deckAdapter?.postEnemyAction(DeckActionType.MONEY)
+        deckAdapter?.postCurrentPlayerAction(DeckActionType.MONEY, currentPlayer)
     }
 
-    private val playerPostTurn = Runnable {
+    private val enemyPostActionTurn = Runnable {
+        deckAdapter?.postCurrentPlayerAction(DeckActionType.ACTION, currentPlayer)
+    }
+
+    private val enemyPostPlayerTurn = Runnable {
         prevPlayer()
-        DeckViewHolder.onPlayerTurn()
+    }
+
+    private fun actionGoPassCard() {
+        val selectedPlayerDeck = listPlayer.first { playerDeck ->
+            playerDeck.actionType == DeckActionType.ACTION
+        }
+
+        selectedPlayerDeck.playerCardItem.add((CardItem(R.drawable.spr_py_2m_card)))
+        selectedPlayerDeck.playerCardItem.add((CardItem(R.drawable.spr_py_orange_house_card)))
     }
 }

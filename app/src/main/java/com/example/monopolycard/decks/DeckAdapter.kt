@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.monopolycard.DeckActionType
 import com.example.monopolycard.DownBarActionEvent
 import com.example.monopolycard.R
 
@@ -39,8 +40,19 @@ class DeckAdapter(
         return deckItem.size
     }
 
-    fun postEnemyAction(actionType: String) {
-        deckItem[1].actionType = actionType
+    fun postCurrentPlayerAction(actionType: String, whichPlayer: Int) {
+        deckItem[whichPlayer].actionType = actionType
         notifyDataSetChanged()
+    }
+
+    fun nextTurn(currentPlayer: Int, nextPlayer: Int) {
+        deckItem[currentPlayer].isActionStepExist = false
+        deckItem[currentPlayer].isAssetStepExist = false
+        deckItem[currentPlayer].isMoneyStepExist = false
+        deckItem[currentPlayer].actionType = DeckActionType.IDLE
+
+        deckItem[nextPlayer].isActionStepExist = true
+        deckItem[nextPlayer].isAssetStepExist = true
+        deckItem[nextPlayer].isMoneyStepExist = true
     }
 }

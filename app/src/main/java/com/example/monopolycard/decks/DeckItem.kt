@@ -7,5 +7,8 @@ class DeckItem(
     val isYourDeck: Boolean,
     val assetCardItem: MutableList<CardItem>,
     val playerCardItem: MutableList<CardItem>,
-    var actionType: String
+    var actionType: String,
+    var isMoneyStepExist: Boolean,
+    var isAssetStepExist: Boolean,
+    var isActionStepExist: Boolean
 ) : Serializable

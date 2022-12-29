@@ -27,37 +27,24 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
     private val nextArrowImageView = itemView.findViewById<ImageView>(R.id.next_image_view)
     private val prevArrowImageView = itemView.findViewById<ImageView>(R.id.prev_image_view)
     private val chosenCardImageView = itemView.findViewById<ImageView>(R.id.chosen_card_image_view)
-    private val placeHolderImageView = itemView.findViewById<ImageView>(R.id.placeholder_image_view)
+    private val placeHolderActionImageView = itemView.findViewById<ImageView>(R.id.placeholder_action_image_view)
+    private val placeHolderMoneyImageView = itemView.findViewById<ImageView>(R.id.placeholder_money_image_view)
     private val dummyDelayLayout = itemView.findViewById<ConstraintLayout>(R.id.dummy_delay_layout)
 
     private var assetCardAdapter: CardAdapter? = null
     private var assetPlayerAdapter: CardAdapter? = null
 
     private var deckItem = DeckItem(
-        false, mutableListOf(), mutableListOf(), DeckActionType.IDLE
+        false,
+        mutableListOf(),
+        mutableListOf(),
+        DeckActionType.IDLE,
+        isMoneyStepExist = false, isAssetStepExist = false, isActionStepExist = false
     )
 
     private var onPagerDown: (() -> Unit) = {}
     private var onPagerUp: (() -> Unit) = {}
     private var onPagerSwipe: ((isNext: Boolean) -> Unit) = {}
-
-    companion object {
-        private var isMoneyStepExist = true
-        private var isAssetStepExist = true
-        private var isActionStepExist = true
-
-        fun onSkipButtonClick() {
-            isMoneyStepExist = false
-            isAssetStepExist = false
-            isActionStepExist = false
-        }
-
-        fun onPlayerTurn() {
-            isMoneyStepExist = true
-            isAssetStepExist = true
-            isActionStepExist = true
-        }
-    }
 
     @SuppressLint("ClickableViewAccessibility")
     fun setPlayerDeck(
@@ -83,7 +70,7 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
                 onPagerDown.invoke()
             },
             onItemUp = { cardItem ->
-                onPostCard(cardItem, downBarActionEvent)
+                onPostCard(cardItem, downBarActionEvent, deckItem)
             }
         )
 
@@ -91,12 +78,32 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
         initViewPager(assetViewPager)
         modifyShownCardViewPager(assetViewPager)
 
-        if (deckItem.isYourDeck) initViewPager(playerViewPager)
-        else playerViewPager.isVisible = false
+        initViewPager(playerViewPager)
+        playerViewPager.isVisible = true
 
+        if (isAllCardTypesNotPosted()) placeHolderActionImageView.visibility = View.GONE
+
+        // for enemy
+        if (!deckItem.isYourDeck)
         when(deckItem.actionType) {
-            DeckActionType.ASSET -> onPostAsset(deckItem.assetCardItem[1], null)
-            DeckActionType.MONEY -> onPostMoney(deckItem.assetCardItem[2], null)
+            DeckActionType.ASSET -> {
+                val selectedAssetCard = deckItem.playerCardItem.filter { card ->
+                    card.image == R.drawable.spr_py_orange_house_card || card.image == R.drawable.spr_py_brown_house_card
+                }
+                if (selectedAssetCard.isNotEmpty()) onPostCard(selectedAssetCard[0], downBarActionEvent, deckItem)
+            }
+            DeckActionType.MONEY -> {
+                val selectedMoneyCard = deckItem.playerCardItem.filter { card ->
+                    card.image == R.drawable.spr_py_2m_card
+                }
+                if (selectedMoneyCard.isNotEmpty()) onPostCard(selectedMoneyCard[0], downBarActionEvent, deckItem)
+            }
+            DeckActionType.ACTION -> {
+                val selectedActionCard = deckItem.playerCardItem.filter { card ->
+                    card.image == R.drawable.spr_py_act_go_pass
+                }
+                if (selectedActionCard.isNotEmpty()) onPostCard(selectedActionCard[0], downBarActionEvent, deckItem)
+            }
         }
     }
 
@@ -141,20 +148,23 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
 
     private fun onPostCard(
         cardItem: CardItem,
-        downBarActionEvent: DownBarActionEvent
+        downBarActionEvent: DownBarActionEvent,
+        deckItem: DeckItem
     ) {
-        if (isValidPostMoney(cardItem)) onPostMoney(cardItem, downBarActionEvent)
-        if (isValidPostAsset(cardItem)) onPostAsset(cardItem, downBarActionEvent)
+        if (isValidPostMoney(cardItem, deckItem)) onPostMoney(cardItem, downBarActionEvent, deckItem)
+        if (isValidPostAsset(cardItem, deckItem)) onPostAsset(cardItem, downBarActionEvent, deckItem)
+        if (isValidPostAction(cardItem, deckItem)) onPostAction(cardItem, downBarActionEvent, deckItem)
     }
 
     private fun onPostAsset(
         cardItem: CardItem,
-        downBarActionEvent: DownBarActionEvent?
+        downBarActionEvent: DownBarActionEvent?,
+        deckItem: DeckItem
     ) {
+        downBarActionEvent?.onStartPostCard()
         onStartPlacingCard(cardItem)
 
         assetViewPager.setCurrentItem(this.deckItem.assetCardItem.size - 1, true)
-        chosenCardImageView.visibility = View.VISIBLE
         val chosenCardY = chosenCardImageView.y
         val chosenCardToY = chosenCardImageView.y - 950
 
@@ -171,20 +181,62 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
         AnimatorSet().apply {
             playTogether(scaleX, scaleY, translateY)
             doOnEnd {
-                isAssetStepExist = false
+                deckItem.isAssetStepExist = false
                 val totalCards = ((assetCardAdapter?.itemCount) ?: 0) - 1
-                assetCardAdapter?.setCardItem(totalCards, R.drawable.spr_py_orange_house_card)
+                assetCardAdapter?.setCardItem(totalCards, cardItem.image)
                 assetCardAdapter?.addCardItem(R.drawable.spr_card_placeholder)
 
-                downBarActionEvent?.onEndPostCard("7", DeckActionType.ASSET)
+                downBarActionEvent?.onEndPostCard("7", DeckActionType.ASSET, isAllCardTypesPosted(deckItem))
                 onFinishingCardPlaced(chosenCardY)
+            }
+        }.start()
+    }
+
+    private fun onPostAction(
+        cardItem: CardItem,
+        downBarActionEvent: DownBarActionEvent?,
+        deckItem: DeckItem
+    ) {
+        downBarActionEvent?.onStartPostCard()
+        onStartPlacingCard(cardItem)
+
+        val chosenCardY = chosenCardImageView.y
+        val chosenCardToY = chosenCardImageView.y - 850
+        val chosenCardX = chosenCardImageView.x
+        val chosenCardToX = chosenCardImageView.x + 120
+
+        val scaleX = ObjectAnimator.ofFloat(
+            chosenCardImageView, View.SCALE_X, 1.0f, 0.468f
+        ).setDuration(1000)
+        val scaleY = ObjectAnimator.ofFloat(
+            chosenCardImageView, View.SCALE_Y, 1.0f, 0.44f
+        ).setDuration(1000)
+        val translateY = ObjectAnimator.ofFloat(
+            chosenCardImageView, View.TRANSLATION_Y, chosenCardY, chosenCardToY
+        ).setDuration(1000)
+        val translateX = ObjectAnimator.ofFloat(
+            chosenCardImageView, View.TRANSLATION_X, chosenCardX, chosenCardToX
+        ).setDuration(1000)
+
+        AnimatorSet().apply {
+            playTogether(scaleX, scaleY, translateY, translateX)
+            doOnEnd {
+                deckItem.isActionStepExist = false
+//                val updatedWidth = chosenActionImageView.width * 0.468f
+//                chosenActionImageView.layoutParams = ConstraintLayout.LayoutParams(updatedWidth.toInt(), 0)
+//
+                placeHolderActionImageView.visibility = View.VISIBLE
+                downBarActionEvent?.onEndPostCard("0", DeckActionType.ACTION, isAllCardTypesPosted(deckItem))
+//                onFinishingCardPlaced(chosenCardY)
+                onFinishingCardPlaced(chosenCardY, chosenCardX)
             }
         }.start()
     }
 
     private fun onPostMoney(
         cardItem: CardItem,
-        downBarActionEvent: DownBarActionEvent?
+        downBarActionEvent: DownBarActionEvent?,
+        deckItem: DeckItem
     ) {
         downBarActionEvent?.onStartPostCard()
         onStartPlacingCard(cardItem)
@@ -208,19 +260,23 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
         AnimatorSet().apply {
             playTogether(scaleX, scaleY, translateY, rotate)
             doOnEnd {
-                isMoneyStepExist = false
+                deckItem.isMoneyStepExist = false
                 chosenCardImageView.rotation = chosenCardRotation
 
-                downBarActionEvent?.onEndPostCard("10", DeckActionType.MONEY)
-                placeHolderImageView.setImageResource(R.drawable.spr_py_2m_card)
+                downBarActionEvent?.onEndPostCard("10", DeckActionType.MONEY, isAllCardTypesPosted(deckItem))
+                placeHolderMoneyImageView.setImageResource(R.drawable.spr_py_2m_card)
                 onFinishingCardPlaced(chosenCardY)
             }
         }.start()
     }
 
-    private fun onFinishingCardPlaced(backToOriginalY: Float) {
+    private fun onFinishingCardPlaced(
+        backToOriginalY: Float,
+        backToOriginalX: Float? = null
+    ) {
         chosenCardImageView.visibility = View.GONE
         chosenCardImageView.y = backToOriginalY
+        if (backToOriginalX != null) chosenCardImageView.x = backToOriginalX
         val currentItem = playerViewPager.currentItem
 
         playerViewPager.setCurrentItem(currentItem - 1, true)
@@ -259,12 +315,21 @@ class DeckViewHolder internal constructor(itemView: View) : RecyclerView.ViewHol
         assetViewPager.isUserInputEnabled = true
     }
 
-    private fun isValidPostMoney(cardItem: CardItem): Boolean =
-        cardItem.image == R.drawable.spr_py_2m_card && isMoneyStepExist
+    private fun isValidPostMoney(cardItem: CardItem, deckItem: DeckItem): Boolean =
+        cardItem.image == R.drawable.spr_py_2m_card && deckItem.isMoneyStepExist
 
-    private fun isValidPostAsset(cardItem: CardItem): Boolean =
+    private fun isValidPostAsset(cardItem: CardItem, deckItem: DeckItem): Boolean =
         (cardItem.image == R.drawable.spr_py_orange_house_card
                 || cardItem.image == R.drawable.spr_py_brown_house_card)
-                && isAssetStepExist
+                && deckItem.isAssetStepExist
+
+    private fun isValidPostAction(cardItem: CardItem, deckItem: DeckItem): Boolean =
+        cardItem.image == R.drawable.spr_py_act_go_pass && deckItem.isActionStepExist
+
+    private fun isAllCardTypesPosted(deckItem: DeckItem): Boolean =
+        !deckItem.isMoneyStepExist && !deckItem.isActionStepExist && !deckItem.isAssetStepExist
+
+    private fun isAllCardTypesNotPosted(): Boolean =
+        deckItem.isMoneyStepExist && deckItem.isActionStepExist && deckItem.isAssetStepExist
 
 }
