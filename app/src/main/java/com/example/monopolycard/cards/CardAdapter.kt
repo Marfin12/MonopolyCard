@@ -25,7 +25,7 @@ class CardAdapter(
             )
         ) else CardViewHolder(
             LayoutInflater.from(context).inflate(
-                R.layout.card_item_container2,
+                R.layout.asset_item_container,
                 parent,
                 false
             )
@@ -44,6 +44,11 @@ class CardAdapter(
         cardItem[pos].image =  image
     }
 
+    fun setAssetLevelItem(pos: Int, assetLevel: Int) {
+        cardItem[pos].assetLevel =  assetLevel
+        notifyDataSetChanged()
+    }
+
     fun addCardItem(image: Int) {
         cardItem.add(CardItem(image))
         notifyDataSetChanged()
@@ -57,5 +62,23 @@ class CardAdapter(
     fun setCardToGone(idx: Int) {
         cardItem[idx] = CardItem(0)
         notifyDataSetChanged()
+    }
+
+    fun hasAssetCard(assetCard: CardItem): Boolean {
+        val filteredCard = cardItem.filter { card ->
+            card.image == assetCard.image
+        }
+
+        return filteredCard.isNotEmpty()
+    }
+
+    fun getIndexAssetCard(assetCard: CardItem): Int {
+        return cardItem.indexOfFirst { card ->
+            card.image == assetCard.image
+        }
+    }
+
+    fun getSelectedCard(idx: Int): CardItem {
+        return cardItem[idx]
     }
 }

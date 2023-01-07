@@ -45,7 +45,14 @@ class DeckAdapter(
         notifyDataSetChanged()
     }
 
-    fun nextTurn(currentPlayer: Int, nextPlayer: Int) {
+    fun updatePlayerMoney(whichPlayer: Int, cash: Int): Int {
+        val updatedCash = deckItem[whichPlayer].money + cash
+        deckItem[whichPlayer].money = updatedCash
+        notifyDataSetChanged()
+        return updatedCash
+    }
+
+    fun nextTurn(currentPlayer: Int, nextPlayer: Int): DeckItem {
         deckItem[currentPlayer].isActionStepExist = false
         deckItem[currentPlayer].isAssetStepExist = false
         deckItem[currentPlayer].isMoneyStepExist = false
@@ -54,5 +61,11 @@ class DeckAdapter(
         deckItem[nextPlayer].isActionStepExist = true
         deckItem[nextPlayer].isAssetStepExist = true
         deckItem[nextPlayer].isMoneyStepExist = true
+
+        return deckItem[nextPlayer]
+    }
+
+    fun getSelectedDeck(whichPlayer: Int): DeckItem {
+        return deckItem[whichPlayer]
     }
 }

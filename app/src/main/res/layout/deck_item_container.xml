@@ -15,8 +15,8 @@
         android:scaleType="fitCenter"
         android:src="@drawable/spr_py_act_go_pass"
         android:visibility="gone"
-        android:layout_marginBottom="350dp"
-        android:layout_marginStart="180dp"
+        android:layout_marginBottom="260dp"
+        android:layout_marginStart="25dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />

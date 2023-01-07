@@ -8,8 +8,9 @@
         <entry key="app/src/main/res/drawable/spr_ui_previous_arrow.xml" value="0.1125" />
         <entry key="app/src/main/res/font/.xml" value="0.1265625" />
         <entry key="app/src/main/res/layout/activity_bluetooth_menu.xml" value="0.12864583333333332" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.10877838134765627" />
-        <entry key="app/src/main/res/layout/card_item_container.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.25609741210937503" />
+        <entry key="app/src/main/res/layout/asset_item_container.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/card_item_container.xml" value="0.13479052823315119" />
         <entry key="app/src/main/res/layout/card_item_container2.xml" value="0.1" />
         <entry key="app/src/main/res/layout/deck_item_container.xml" value="0.1" />
         <entry key="app/src/main/res/layout/layout_enemy_card.xml" value="0.1" />
