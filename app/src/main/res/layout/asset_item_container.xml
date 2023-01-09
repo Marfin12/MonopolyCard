@@ -1,0 +1,63 @@
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.makeramen.roundedimageview.RoundedImageView
+        android:id="@+id/card_image_view"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        app:riv_corner_radius="12dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        />
+
+    <com.makeramen.roundedimageview.RoundedImageView
+        android:id="@+id/card_image_view2"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        app:riv_corner_radius="12dp"
+        android:layout_marginTop="20dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        />
+
+    <com.makeramen.roundedimageview.RoundedImageView
+        android:id="@+id/card_image_view3"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        app:riv_corner_radius="12dp"
+        android:layout_marginTop="40dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+    <!--<?xml version="1.0" encoding="utf-8"?>-->
+    <!--<androidx.constraintlayout.widget.ConstraintLayout-->
+    <!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+    <!--    xmlns:android="http://schemas.android.com/apk/res/android"-->
+    <!--    android:layout_width="match_parent"-->
+    <!--    android:layout_height="match_parent"-->
+    <!--    app:cardCornerRadius="40dp"-->
+    <!--    android:layout_margin="5dp"-->
+    <!--    android:elevation="10dp">-->
+
+    <!--    <ImageView-->
+    <!--        android:id="@+id/card_image_view"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:src="@drawable/dice1"-->
+    <!--        android:background="@color/white"-->
+    <!--        android:scaleType="centerCrop"-->
+    <!--        android:contentDescription="TODO"-->
+    <!--        app:layout_constraintStart_toStartOf="parent"-->
+    <!--        app:layout_constraintTop_toTopOf="parent"-->
+    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--        app:layout_constraintEnd_toEndOf="parent"-->
+    <!--        />-->
+
+    <!--</androidx.constraintlayout.widget.ConstraintLayout>-->
