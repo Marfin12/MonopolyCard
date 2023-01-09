@@ -3,6 +3,8 @@ package com.example.monopolycard
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.SoundPool

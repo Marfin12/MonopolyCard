@@ -38,33 +38,33 @@ class BluetoothMenuActivity : AppCompatActivity() {
     private lateinit var bluetoothAdapter: BluetoothAdapter
     private var bluetoothDevices = mutableListOf<BluetoothDevice>()
 
-    private var handler: Handler = Handler { msg ->
-        if (ActivityCompat.checkSelfPermission(
-                applicationContext,
-                Manifest.permission.BLUETOOTH_CONNECT
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            when (msg.what) {
-                STATE_LISTENING ->
-                    binding.status.text = "listening"
-                STATE_CONNECTING ->
-                    binding.status.text = "connecting"
-                STATE_CONNECTED ->
-                    binding.status.text = "connected"
-                STATE_CONNECTION_FAILED ->
-                    binding.status.text = "failed"
-                STATE_MESSAGE_RECEIVED -> {
-
-                    val readBuffer = msg.obj as ByteArray
-                    val tempMessage = String(readBuffer, 0, msg.arg1)
-
-                    binding.msg.text = tempMessage
-                }
-            }
-        }
-
-        true
-    }
+//    private var handler: Handler = Handler { msg ->
+//        if (ActivityCompat.checkSelfPermission(
+//                applicationContext,
+//                Manifest.permission.BLUETOOTH_CONNECT
+//            ) != PackageManager.PERMISSION_GRANTED
+//        ) {
+//            when (msg.what) {
+//                STATE_LISTENING ->
+//                    binding.status.text = "listening"
+//                STATE_CONNECTING ->
+//                    binding.status.text = "connecting"
+//                STATE_CONNECTED ->
+//                    binding.status.text = "connected"
+//                STATE_CONNECTION_FAILED ->
+//                    binding.status.text = "failed"
+//                STATE_MESSAGE_RECEIVED -> {
+//
+//                    val readBuffer = msg.obj as ByteArray
+//                    val tempMessage = String(readBuffer, 0, msg.arg1)
+//
+//                    binding.msg.text = tempMessage
+//                }
+//            }
+//        }
+//
+//        true
+//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,9 +79,6 @@ class BluetoothMenuActivity : AppCompatActivity() {
     }
 
     private fun implementListeners() {
-        var clientClass: BTClient? = null
-        var serverClass: BTServer? = null
-
         binding.btnDiscover.setOnClickListener {
             if (!bluetoothAdapter.isEnabled){
                 checkBTPermission {
@@ -91,30 +88,39 @@ class BluetoothMenuActivity : AppCompatActivity() {
             discoveryDevices()
         }
 
-        binding.listView1.onItemClickListener = OnItemClickListener { parent, view, i, id -> // ClientClass oluşturma
-            clientClass = BTClient(this, bluetoothDevices[i], handler)
-            clientClass?.start()
-
-            binding.status.text = "connecting"
-        }
-
-        binding.btnCreateServer.setOnClickListener {
-            serverClass = BTServer(bluetoothAdapter, handler)
-            serverClass?.start()
-        }
-
-        binding.btnSend.setOnClickListener {
-            val string: String = java.lang.String.valueOf(binding.writemsg.text)
-            if (clientClass != null) {
-                println("work on client")
-                clientClass?.sendReceive?.write(string.toByteArray())
-            } else if (serverClass != null) {
-                println("work on server")
-                serverClass?.sendReceive?.write(string.toByteArray())
-            } else {
-                println("not work")
+        binding.btnFind.setOnClickListener {
+            if (!bluetoothAdapter.isEnabled){
+                checkBTPermission {
+                    bluetoothAdapter.enable()
+                }
             }
+            searchExistingBondedDevices()
         }
+
+//        binding.listView1.onItemClickListener = OnItemClickListener { parent, view, i, id -> // ClientClass oluşturma
+//            clientClass = BTClient(this, bluetoothDevices[i], handler)
+//            clientClass?.start()
+//
+//            binding.status.text = "connecting"
+//        }
+//
+//        binding.btnCreateServer.setOnClickListener {
+//            serverClass = BTServer(bluetoothAdapter, handler)
+//            serverClass?.start()
+//        }
+
+//        binding.btnSend.setOnClickListener {
+//            val string: String = java.lang.String.valueOf(binding.writemsg.text)
+//            if (clientClass != null) {
+//                println("work on client")
+//                clientClass?.sendReceive?.write(string.toByteArray())
+//            } else if (serverClass != null) {
+//                println("work on server")
+//                serverClass?.sendReceive?.write(string.toByteArray())
+//            } else {
+//                println("not work")
+//            }
+//        }
     }
 
     private fun discoveryDevices() {
@@ -197,7 +203,6 @@ class BluetoothMenuActivity : AppCompatActivity() {
     }
 
     private fun checkBTPermission(onAcceptedAction: () -> Boolean) {
-        println("hey")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (ActivityCompat.checkSelfPermission(
                     this,
